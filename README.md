@@ -8,6 +8,8 @@ gitterpy is a Python client API for the [Gitter](https://gitter.im) web chat pla
 
 It uses the [Gitter REST API](https://developer.gitter.im/docs/rest-api).
 
+[![Build Status](https://ci.graycat.io/buildStatus/icon?job=gitterpy)](https://ci.graycat.io/job/gitterpy/)
+
 # Installation
 
 To install, first clone the repository:
