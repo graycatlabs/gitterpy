@@ -6,6 +6,7 @@
 """
 
 import requests, urlparse, json
+from time import sleep
 
 class Gitter(object):
   rest_api_url = "https://api.gitter.im/v1/"
@@ -83,6 +84,41 @@ class Gitter(object):
       if room.get("name") == room_name:
         return room.get("id")
     return None
+
+  def listMessagesCursor(self, room_name, sleep_time=1.0):
+    """
+    Makes a cursor to iterate through message objects present to past.
+
+    See: https://developer.gitter.im/docs/messages-resource
+
+    API self-throttling: Between every iteration, the generator sleeps the
+    process for some float value ``sleep_time`` in seconds.
+    """
+
+    def iter_check(d):
+      if not d:
+        raise StopIteration()
+      return d[0].get("id")
+
+    room_id = self.roomIdFromName(room_name)
+    
+    # yield first batch of <= 100 message objects
+    url_f = "rooms/{0}/chatMessages?limit=100"
+    data = self._get(url_f.format(room_id))
+    before_id = iter_check(data)
+    for message in reversed(data):
+      yield message
+
+    # yield consecutive batches
+    url_f = "rooms/{0}/chatMessages?limit=100&beforeId={1}"
+    while True:
+      sleep(sleep_time)
+      data = self._get(url_f.format(room_id, before_id))
+      before_id = iter_check(data)
+      for message in reversed(data):
+        yield message
+
+    raise StopIteration()
 
   def _stream(self, path):
     """ Makes a GET request to the given path, returning the response
