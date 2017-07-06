@@ -117,7 +117,7 @@ class Gitter(object):
       for message in reversed(data):
         yield message
 
-    StopIteration()
+    raise StopIteration()
 
   def _stream(self, path):
     """ Makes a GET request to the given path, returning the response
