@@ -94,14 +94,18 @@ class Gitter(object):
     API self-throttling: Between every iteration, the generator sleeps the
     process for some float value ``sleep_time`` in seconds.
     """
-    room_id = self.roomIdFromName(room_name)
 
+    def iter_check(d):
+      if not d:
+        raise StopIteration()
+      return d[0].get("id")
+
+    room_id = self.roomIdFromName(room_name)
+    
     # yield first batch of <= 100 message objects
     url_f = "rooms/{0}/chatMessages?limit=100"
     data = self._get(url_f.format(room_id))
-    if not data:
-      raise StopIteration()
-    before_id = data[0].get("id")
+    before_id = iter_check(data)
     for message in reversed(data):
       yield message
 
@@ -109,11 +113,8 @@ class Gitter(object):
     url_f = "rooms/{0}/chatMessages?limit=100&beforeId={1}"
     while True:
       sleep(sleep_time)
-
       data = self._get(url_f.format(room_id, before_id))
-      if not data:
-        raise StopIteration()
-      before_id = data[0].get("id")
+      before_id = iter_check(data)
       for message in reversed(data):
         yield message
 
